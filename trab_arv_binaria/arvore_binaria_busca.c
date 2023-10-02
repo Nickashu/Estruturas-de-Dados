@@ -67,7 +67,10 @@ void enqueue(FILA **f, NO_ARVORE *ptNo){
     if((*f)->pInicio == NULL && (*f)->pFinal == NULL){    /*Fila vazia*/
         (*f)->pInicio = (NO *)malloc(sizeof(NO));
         (*f)->pFinal = (NO *)malloc(sizeof(NO));
-        if((*f)->pInicio && (*f)->pFinal){
+        (*f)->pInicio->no_arv = (NO_ARVORE *)malloc(sizeof(NO_ARVORE));
+        (*f)->pFinal->no_arv = (NO_ARVORE *)malloc(sizeof(NO_ARVORE));
+
+        if((*f)->pInicio && (*f)->pFinal && (*f)->pInicio->no_arv && (*f)->pFinal->no_arv){
             (*f)->pInicio->no_arv = ptNo;
             (*f)->pFinal->no_arv = ptNo;
         }
@@ -75,8 +78,16 @@ void enqueue(FILA **f, NO_ARVORE *ptNo){
             return;
     }
     else{
-        (*f)->pFinal->prox->no_arv = ptNo;
-        (*f)->pFinal->no_arv = ptNo;
+        NO *novo = (NO *)malloc(sizeof(NO));
+        if(novo){
+            NO_ARVORE *no_arv = (NO_ARVORE *)malloc(sizeof(NO_ARVORE));
+            if(no_arv){
+                novo->no_arv = no_arv;
+                novo->prox = NULL;
+                (*f)->pFinal->prox = novo;
+                (*f)->pFinal = (*f)->pFinal->prox;
+            }
+        }
     }
     (*f)->vazia = 0;
     /*printf("Elemento inserido!\n");*/
@@ -91,16 +102,18 @@ NO_ARVORE *dequeue(FILA **f){
     else if((*f)->pInicio->no_arv == (*f)->pFinal->no_arv){
         no_arv = (*f)->pInicio->no_arv;
         free((*f)->pInicio);
+        free((*f)->pFinal);
         (*f)->pInicio = NULL;
         (*f)->pFinal = NULL;
         (*f)->vazia = 1;
     }
     else{
+        NO *copia_pInicio = (*f)->pInicio;
         no_arv = (*f)->pInicio->no_arv;
         (*f)->pInicio = (*f)->pInicio->prox;
-        free((*f)->pInicio);
+        free(copia_pInicio);
     }
-    /*printf("Elemento %d removido!\n", no_arv->chave);*/
+    printf("Elemento %d removido!\n", no_arv->chave);
     return no_arv;
 }
 
@@ -114,7 +127,6 @@ void insereElemento(NO_ARVORE **ptRaiz, int chave){
         (*ptRaiz)->esq = NULL;
     }
     else{
-        printf("nao null\n");
         NO_ARVORE *novo = (NO_ARVORE *)malloc(sizeof(NO_ARVORE));
         if(novo == NULL){
             printf("Erro.\n");
@@ -205,9 +217,11 @@ void printaEmNivel(NO_ARVORE *ptRaiz, FILA **f1){
         enqueue(f1, ptRaiz);
         while(!(*f1)->vazia){
             NO_ARVORE *pt = dequeue(f1);
+            printf("pwqowqo\n");
             printf("%d ", pt->chave);
-            if(pt->esq != NULL)
+            if(pt->esq != NULL){
                 enqueue(f1, pt->esq);
+            }
             if(pt->dir != NULL)
                 enqueue(f1, pt->dir);
         }
