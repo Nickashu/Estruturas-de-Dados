@@ -20,6 +20,7 @@ void initFila(FILA **f);
 void enqueue(FILA **f, NO_ARVORE *ptNo);
 NO_ARVORE *dequeue(FILA **f);
 void printaEmNivel(NO_ARVORE *ptRaiz, FILA **f1);
+void printaEmOrdem(NO_ARVORE *ptRaiz);
 void insereElemento(NO_ARVORE **ptRaiz, int chave);
 NO_ARVORE *buscaElemento(NO_ARVORE *ptRaiz, NO_ARVORE **pai, int chave);
 void removeElemento(NO_ARVORE **ptRaiz, int chave);
@@ -45,7 +46,9 @@ int main(){
                 removeElemento(&ptRaiz, num);
                 break;
             case 3:
-                printaEmNivel(ptRaiz, &f1);
+                /*printaEmNivel(ptRaiz, &f1);*/
+                printaEmOrdem(ptRaiz);
+                printf("\n");
                 break;
             case 4:
                 sair = 1;
@@ -212,12 +215,19 @@ void removeElemento(NO_ARVORE **ptRaiz, int chave){
     printf("Elemento removido!\n");
 }
 
+void printaEmOrdem(NO_ARVORE *ptRaiz){
+    if(ptRaiz == NULL)
+        return;
+    printaEmOrdem(ptRaiz->esq);
+    printf("%d ", ptRaiz->chave);
+    printaEmOrdem(ptRaiz->dir);
+}
+
 void printaEmNivel(NO_ARVORE *ptRaiz, FILA **f1){
     if(ptRaiz != NULL){
         enqueue(f1, ptRaiz);
         while(!(*f1)->vazia){
             NO_ARVORE *pt = dequeue(f1);
-            printf("pwqowqo\n");
             printf("%d ", pt->chave);
             if(pt->esq != NULL){
                 enqueue(f1, pt->esq);
