@@ -19,7 +19,7 @@ typedef struct _FILA{
 void initFila(FILA **f);
 void enqueue(FILA **f, NO_ARVORE *ptNo);
 NO_ARVORE *dequeue(FILA **f);
-void printaEmNivel(NO_ARVORE *ptRaiz, FILA **f1);
+void printaEmNivel(NO_ARVORE *ptRaiz);
 void printaEmOrdem(NO_ARVORE *ptRaiz);
 void insereElemento(NO_ARVORE **ptRaiz, int chave);
 NO_ARVORE *buscaElemento(NO_ARVORE *ptRaiz, NO_ARVORE **pai, int chave);
@@ -28,8 +28,6 @@ void removeElemento(NO_ARVORE **ptRaiz, int chave);
 int main(){
     int sair=0, opc, num;
     NO_ARVORE *ptRaiz = NULL;   /*Iniciando com a árvore vazia*/
-    FILA *f1;
-    initFila(&f1);
 
     do{
         printf("1 - Inserir na arvore\n2 - Remover da arvore\n3 - Printar arvore\n4 - Sair\n");
@@ -46,8 +44,8 @@ int main(){
                 removeElemento(&ptRaiz, num);
                 break;
             case 3:
-                /*printaEmNivel(ptRaiz, &f1);*/
-                printaEmOrdem(ptRaiz);
+                printaEmNivel(ptRaiz);
+                /*printaEmOrdem(ptRaiz);*/
                 printf("\n");
                 break;
             case 4:
@@ -61,21 +59,29 @@ int main(){
 
 void initFila(FILA **f){
     (*f) = (FILA *)malloc(sizeof(FILA));
-    (*f)->pFinal = NULL;
-    (*f)->pInicio = NULL;
-    (*f)->vazia = 1;
+    (*f)->pFinal = (NO *)malloc(sizeof(NO));
+    (*f)->pInicio = (NO *)malloc(sizeof(NO));
+    if((*f) && (*f)->pFinal && (*f)->pInicio){
+        (*f)->pInicio->no_arv = NULL;
+        (*f)->pInicio->prox = NULL;
+        (*f)->pFinal->no_arv = NULL;
+        (*f)->pFinal->prox = NULL;
+        (*f)->vazia = 1;
+    }
+    else
+        return;
 }
 
 void enqueue(FILA **f, NO_ARVORE *ptNo){
-    if((*f)->pInicio == NULL && (*f)->pFinal == NULL){    /*Fila vazia*/
-        (*f)->pInicio = (NO *)malloc(sizeof(NO));
-        (*f)->pFinal = (NO *)malloc(sizeof(NO));
+    NO_ARVORE *copiaNo = ptNo;
+    if((*f)->pInicio->no_arv == NULL && (*f)->pFinal->no_arv == NULL){    /*Fila vazia*/
         (*f)->pInicio->no_arv = (NO_ARVORE *)malloc(sizeof(NO_ARVORE));
         (*f)->pFinal->no_arv = (NO_ARVORE *)malloc(sizeof(NO_ARVORE));
 
-        if((*f)->pInicio && (*f)->pFinal && (*f)->pInicio->no_arv && (*f)->pFinal->no_arv){
-            (*f)->pInicio->no_arv = ptNo;
-            (*f)->pFinal->no_arv = ptNo;
+        if((*f)->pInicio->no_arv && (*f)->pFinal->no_arv){
+            (*f)->pInicio = (*f)->pFinal;
+            (*f)->pInicio->no_arv = copiaNo;
+            (*f)->pFinal->no_arv = copiaNo;
         }
         else
             return;
@@ -84,6 +90,7 @@ void enqueue(FILA **f, NO_ARVORE *ptNo){
         NO *novo = (NO *)malloc(sizeof(NO));
         if(novo){
             NO_ARVORE *no_arv = (NO_ARVORE *)malloc(sizeof(NO_ARVORE));
+            no_arv = copiaNo;
             if(no_arv){
                 novo->no_arv = no_arv;
                 novo->prox = NULL;
@@ -93,30 +100,28 @@ void enqueue(FILA **f, NO_ARVORE *ptNo){
         }
     }
     (*f)->vazia = 0;
-    /*printf("Elemento inserido!\n");*/
 }
 
 NO_ARVORE *dequeue(FILA **f){
     NO_ARVORE *no_arv;
-    if((*f)->pInicio == NULL && (*f)->pFinal == NULL){    /*Fila vazia*/
+    if((*f)->pInicio->no_arv == NULL && (*f)->pFinal->no_arv == NULL){    /*Fila vazia*/
         printf("Fila vazia!\n");
         return NULL;
     }
-    else if((*f)->pInicio->no_arv == (*f)->pFinal->no_arv){
+    else if((*f)->pInicio == (*f)->pFinal){   /*Fila com 1 elemento*/
+        NO *copia = (*f)->pInicio;
         no_arv = (*f)->pInicio->no_arv;
-        free((*f)->pInicio);
-        free((*f)->pFinal);
-        (*f)->pInicio = NULL;
-        (*f)->pFinal = NULL;
+        (*f)->pInicio->no_arv = NULL;
+        (*f)->pFinal->no_arv = NULL;
         (*f)->vazia = 1;
+        free(copia);
     }
-    else{
-        NO *copia_pInicio = (*f)->pInicio;
+    else{     /*Fila com mais de um elemento*/
+        NO *copia = (*f)->pInicio;
         no_arv = (*f)->pInicio->no_arv;
         (*f)->pInicio = (*f)->pInicio->prox;
-        free(copia_pInicio);
+        free(copia);
     }
-    printf("Elemento %d removido!\n", no_arv->chave);
     return no_arv;
 }
 
@@ -173,45 +178,50 @@ NO_ARVORE *buscaElemento(NO_ARVORE *ptRaiz, NO_ARVORE **pai, int chave){
 
 void removeElemento(NO_ARVORE **ptRaiz, int chave){
     NO_ARVORE *pt, *pai;
+    int numFilhos=0;
+    NO_ARVORE *filho = NULL;
+
     pt = buscaElemento((*ptRaiz), &pai, chave);
     if(pt == NULL){
         printf("Elemento nao encontrado!\n");
         return;
     }
-    if(pai == NULL){   /*Árvore com apenas 1 elemento*/
-        free((*ptRaiz));
-        (*ptRaiz) = NULL;
+
+    if(pt->esq != NULL){
+        numFilhos++;
+        filho = pt->esq;
     }
-    else{
-        int numFilhos=0;
-        NO_ARVORE *filho = NULL;
-        if(pt->esq != NULL){
-            numFilhos++;
-            filho = pt->esq;
-        }
-        if(pt->dir != NULL){
-            numFilhos++;
-            filho = pt->dir;
-        }
-        if(numFilhos != 2){    /*Se o nó que está sendo removido tem 1 ou 0 filhos*/
+    if(pt->dir != NULL){
+        numFilhos++;
+        filho = pt->dir;
+    }
+    if(numFilhos != 2){    /*Se o nó que está sendo removido tem 1 ou 0 filhos*/
+        if(pai == NULL)    /*Se estivermos tentando remover a raíz da árvore, o filho será a nova raíz*/
+            (*ptRaiz) = filho;
+        else{
             if(pt == pai->esq)
                 pai->esq = filho;
             else if(pt == pai->dir)
                 pai->dir = filho;
         }
-        else{
-            NO_ARVORE *elemRemove = pt;
-            pai = pt;
-            pt = pt->dir;
-            while(pt->esq != NULL){
-                pai = pt;
-                pt = pt->esq;
-            }
-            elemRemove->chave = pt->chave;
-            pai->esq = NULL;
-            free(pt);
-        }
+        free(pt);
     }
+    else{
+        NO_ARVORE *elemRemove = pt;
+        pai = pt;
+        pt = pt->dir;
+        while(pt->esq != NULL){
+            pai = pt;
+            pt = pt->esq;
+        }
+        elemRemove->chave = pt->chave;
+        if(pt == pai->dir)
+            pai->dir = pt->dir;
+        else
+            pai->esq = pt->dir;
+        free(pt);
+    }
+
     printf("Elemento removido!\n");
 }
 
@@ -223,18 +233,20 @@ void printaEmOrdem(NO_ARVORE *ptRaiz){
     printaEmOrdem(ptRaiz->dir);
 }
 
-void printaEmNivel(NO_ARVORE *ptRaiz, FILA **f1){
+void printaEmNivel(NO_ARVORE *ptRaiz){
+    FILA *f1;
+    initFila(&f1);
     if(ptRaiz != NULL){
-        enqueue(f1, ptRaiz);
-        while(!(*f1)->vazia){
-            NO_ARVORE *pt = dequeue(f1);
+        enqueue(&f1, ptRaiz);
+        while(!(f1->vazia)){
+            NO_ARVORE *pt = dequeue(&f1);
             printf("%d ", pt->chave);
-            if(pt->esq != NULL){
-                enqueue(f1, pt->esq);
-            }
+            if(pt->esq != NULL)
+                enqueue(&f1, pt->esq);
             if(pt->dir != NULL)
-                enqueue(f1, pt->dir);
+                enqueue(&f1, pt->dir);
         }
         printf("\n");
     }
+    free(f1);
 }
