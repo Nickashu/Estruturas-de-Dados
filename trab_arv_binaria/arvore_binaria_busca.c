@@ -20,39 +20,30 @@ void initFila(FILA **f);
 void enqueue(FILA **f, NO_ARVORE *ptNo);
 NO_ARVORE *dequeue(FILA **f);
 void printaEmNivel(NO_ARVORE *ptRaiz);
-void printaEmOrdem(NO_ARVORE *ptRaiz);
 void insereElemento(NO_ARVORE **ptRaiz, int chave);
 NO_ARVORE *buscaElemento(NO_ARVORE *ptRaiz, NO_ARVORE **pai, int chave);
 void removeElemento(NO_ARVORE **ptRaiz, int chave);
 
 int main(){
-    int sair=0, opc, num;
+    int num;
+    char operacao;
     NO_ARVORE *ptRaiz = NULL;   /*Iniciando com a árvore vazia*/
 
-    do{
-        printf("1 - Inserir na arvore\n2 - Remover da arvore\n3 - Printar arvore\n4 - Sair\n");
-        scanf("%d", &opc);
-        switch(opc){
-            case 1:
-                printf("Digite o elemento a ser inserido: ");
+    while (scanf("%c", &operacao) != EOF) {    
+        switch(operacao){
+            case 'i':
                 scanf("%d", &num);
                 insereElemento(&ptRaiz, num);
                 break;
-            case 2:
-                printf("Digite o elemento a ser removido: ");
+            case 'r':
                 scanf("%d", &num);
                 removeElemento(&ptRaiz, num);
                 break;
-            case 3:
+            case 'p':
                 printaEmNivel(ptRaiz);
-                /*printaEmOrdem(ptRaiz);*/
-                printf("\n");
-                break;
-            case 4:
-                sair = 1;
                 break;
         }
-    } while(!sair);
+    }
 
     return 0;
 }
@@ -223,14 +214,6 @@ void removeElemento(NO_ARVORE **ptRaiz, int chave){
     }
 
     printf("Elemento removido!\n");
-}
-
-void printaEmOrdem(NO_ARVORE *ptRaiz){
-    if(ptRaiz == NULL)
-        return;
-    printaEmOrdem(ptRaiz->esq);
-    printf("%d ", ptRaiz->chave);
-    printaEmOrdem(ptRaiz->dir);
 }
 
 void printaEmNivel(NO_ARVORE *ptRaiz){
