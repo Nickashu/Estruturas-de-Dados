@@ -1,21 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct _NO_ARVORE{
+typedef struct _NO_ARVORE{      /*Struct para a árvore*/
     int chave;
     struct _NO_ARVORE *esq, *dir;
 } NO_ARVORE;
 
-typedef struct _NO{
+typedef struct _NO{                /*Struct para o nó da fila que será utilizada*/
     NO_ARVORE *no_arv;
     struct _NO *prox;
 } NO;
 
-typedef struct _FILA{
+typedef struct _FILA{                /*Struct para a fila que será utilizada ao imprimir a árvore*/
     NO *pInicio, *pFinal;
     int vazia;
 } FILA;
 
+/*Protótipo das funções criadas*/
 void initFila(FILA **f);
 void enqueue(FILA **f, NO_ARVORE *ptNo);
 NO_ARVORE *dequeue(FILA **f);
@@ -29,7 +30,7 @@ int main(){
     char operacao;
     NO_ARVORE *ptRaiz = NULL;   /*Iniciando com a árvore vazia*/
 
-    while (scanf("%c", &operacao) != EOF) {    
+    while (scanf("%c", &operacao) != EOF) {      /*Loop para os inputs do usuário (inserção, remoção ou impressão da árvore). O loop é quebrado quando detectado o fim de arquivo*/
         switch(operacao){
             case 'i':
                 scanf("%d", &num);
@@ -44,10 +45,10 @@ int main(){
                 break;
         }
     }
-
     return 0;
 }
 
+/*Funções para a fila (init, enqueue e dequeue)*/
 void initFila(FILA **f){
     (*f) = (FILA *)malloc(sizeof(FILA));
     (*f)->pFinal = (NO *)malloc(sizeof(NO));
@@ -95,10 +96,8 @@ void enqueue(FILA **f, NO_ARVORE *ptNo){
 
 NO_ARVORE *dequeue(FILA **f){
     NO_ARVORE *no_arv;
-    if((*f)->pInicio->no_arv == NULL && (*f)->pFinal->no_arv == NULL){    /*Fila vazia*/
-        printf("Fila vazia!\n");
+    if((*f)->pInicio->no_arv == NULL && (*f)->pFinal->no_arv == NULL)    /*Fila vazia*/
         return NULL;
-    }
     else if((*f)->pInicio == (*f)->pFinal){   /*Fila com 1 elemento*/
         NO *copia = (*f)->pInicio;
         no_arv = (*f)->pInicio->no_arv;
@@ -116,8 +115,9 @@ NO_ARVORE *dequeue(FILA **f){
     return no_arv;
 }
 
+/*Funções de operações com a árvore binária de busca (inserção, busca, remoção e impressão)*/
 void insereElemento(NO_ARVORE **ptRaiz, int chave){
-    if((*ptRaiz) == NULL){
+    if((*ptRaiz) == NULL){    /*Árvore vazia*/
         (*ptRaiz) = (NO_ARVORE *)malloc(sizeof(NO_ARVORE));
         if(!ptRaiz)
             return;
@@ -150,10 +150,9 @@ void insereElemento(NO_ARVORE **ptRaiz, int chave){
                 ant->dir = novo;
         }
     }
-    printf("Elemendo inserido!\n");
 }
 
-NO_ARVORE *buscaElemento(NO_ARVORE *ptRaiz, NO_ARVORE **pai, int chave){
+NO_ARVORE *buscaElemento(NO_ARVORE *ptRaiz, NO_ARVORE **pai, int chave){    /*A busca nos fornece informação sobre o elemento a ser encontrado e seu pai*/
     NO_ARVORE *pt = ptRaiz;
     (*pai) = NULL;
     while(pt != NULL && pt->chave != chave){
@@ -166,17 +165,14 @@ NO_ARVORE *buscaElemento(NO_ARVORE *ptRaiz, NO_ARVORE **pai, int chave){
     return pt;
 }
 
-
 void removeElemento(NO_ARVORE **ptRaiz, int chave){
     NO_ARVORE *pt, *pai;
     int numFilhos=0;
     NO_ARVORE *filho = NULL;
 
     pt = buscaElemento((*ptRaiz), &pai, chave);
-    if(pt == NULL){
-        printf("Elemento nao encontrado!\n");
+    if(pt == NULL)
         return;
-    }
 
     if(pt->esq != NULL){
         numFilhos++;
@@ -212,13 +208,11 @@ void removeElemento(NO_ARVORE **ptRaiz, int chave){
             pai->esq = pt->dir;
         free(pt);
     }
-
-    printf("Elemento removido!\n");
 }
 
 void printaEmNivel(NO_ARVORE *ptRaiz){
     FILA *f1;
-    initFila(&f1);
+    initFila(&f1);     /*Criando uma fila*/
     if(ptRaiz != NULL){
         enqueue(&f1, ptRaiz);
         while(!(f1->vazia)){
@@ -231,5 +225,5 @@ void printaEmNivel(NO_ARVORE *ptRaiz){
         }
         printf("\n");
     }
-    free(f1);
+    free(f1);   /*Liberando o espaço na memória ocupado pela fila*/
 }
