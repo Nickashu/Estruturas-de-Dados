@@ -2,17 +2,16 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define TAM_TABELA 100    /*Tamanho da tabela hash*/
+#define TAM_TABELA 300    /*Tamanho da tabela hash*/
 
 /*A hash implementada para este trabalho utiliza encadeamento externo*/
 typedef struct _Palavra_Hash {
-    char *palavra;
+    char palavra[100];
     int qntOcorrencias;
     struct _Palavra_Hash *prox;
 } Palavra_Hash;
 
-
-int h(char *palavra){    /*Esta é a função de hash*/
+int h(char *palavra){    /*Esta é a função de hash utilizada (somatório dos códigos ASCII da palavra módulo o tamanho da tabela)*/
     int tam_string = strlen(palavra), i, somatorio_ASCII=0;
     for(i=0; i<tam_string; i++){
         somatorio_ASCII += palavra[i];
@@ -59,27 +58,28 @@ void inserirNaHash(Palavra_Hash **tabela, char *palavra){
         Palavra_Hash *novo = (Palavra_Hash *)malloc(sizeof(Palavra_Hash));
         if(novo){
             novo->prox = NULL;
-
-            novo->palavra = (char *)malloc(sizeof(char) * (strlen(palavra) + 1));
-            if(!(novo->palavra))
-                return;
             strcpy(novo->palavra, palavra);
+            novo->qntOcorrencias = 1;    /*Quando um novo elemento é inserido, seu número de ocorrências começa com 1*/
 
-            novo->qntOcorrencias = 1;
-
-            if(ptAnt != NULL){    /*Se eu não estiver inserindo o primeiro elemento da lista*/
+            if(ptAnt != NULL)    /*Se eu não estiver inserindo o primeiro elemento da lista*/
                 ptAnt->prox = novo;
-            }
-            else{     /*Se for o primeiro elemento da lista*/
+            else
                 tabela[indiceValor] = novo;
-            }
 
             /*printf("Palavra '%s' inserida!\n", palavra);*/
         }
     }
 }
 
+/*Esta função foi feita para verificar se caracteres isolados do texto são palavras válidas (se for um algarismo ou uma letra)*/
+int isCaractereValido(char caractere){
+    if((caractere >= 48 && caractere <= 57) || (caractere >= 65 && caractere <= 90) || (caractere >= 97 && caractere <= 122))
+        return 1;
+    return 0;
+}
 
+
+/*As seguintes funções de remoção e de printar a tabela hash foram feitas apenas como treinamento e para realizar testes*/
 int removerDaHash(Palavra_Hash **tabela, char *palavra){
     int indiceValor = h(palavra);
     Palavra_Hash *pt = tabela[indiceValor], *ptAnt;
@@ -92,119 +92,79 @@ int removerDaHash(Palavra_Hash **tabela, char *palavra){
     }
 
     if(pt == NULL){
-        printf("Nao foi possivel remover o elemento '%s'. Elemento nao esta na hash!\n", palavra);
+        /*printf("Nao foi possivel remover o elemento '%s'. Elemento nao esta na hash!\n", palavra);*/
         return 0;
     }
 
-    if(ptAnt == NULL){
+    if(ptAnt == NULL)
         tabela[indiceValor] = pt->prox;
-    }
-    else{
+    else
         ptAnt->prox = pt->prox;
-    }
 
     free(pt);
 
-    printf("Elemento '%s' removido!\n", palavra);
+    /*printf("Elemento '%s' removido!\n", palavra);*/
     return 1;
 }
 
-
 void printarTabelaHash(Palavra_Hash **tabela){
     int i;
+    float fatorCarga=0;
     printf("\n==========TABELA HASH==========\n");
     for(i=0; i<TAM_TABELA; i++){
         Palavra_Hash *pt = tabela[i];
-        int contElementos=0;
+        int contElementosPosicao=0;
         printf("%d: ", i+1);
         while(pt != NULL){
-            /*
-            if(pt->prox != NULL)
-                printf("%s - ", pt->palavra);
-            else
-                printf("%s ", pt->palavra);
-            */
-            contElementos++;
+            fatorCarga++;
+
+            contElementosPosicao++;
             pt = pt->prox;
         }
-        if(contElementos == 0)
+        if(contElementosPosicao == 0)
             printf("---------- ");
 
-        printf("     Quantidade de elementos: %d\n", contElementos);
+        printf("     Quantidade de elementos: %d\n", contElementosPosicao);
     }
+    fatorCarga = fatorCarga / (float) TAM_TABELA;
+    printf("Fator de carga: %.2f", fatorCarga);
     printf("\n");
-}
-
-/*Esta função foi feita para verificar se caracteres isolados do texto são palavras válidas (se for um algarismo ou uma letra)*/
-int isCaractereValido(char caractere){
-    if((caractere >= 48 && caractere <= 57) || (caractere >= 65 && caractere <= 90) || (caractere >= 97 && caractere <= 122))
-        return 1;
-    return 0;
 }
 
 
 int main(){
-    char palavra[100];
-    Palavra_Hash *tabela[TAM_TABELA];    /*Este vetor representa nossa tabela hash*/
-    Init_Hash(tabela);     /*Inicializando minha tabela hash*/
+    char palavra[100], *palavraProcurada = "the";
+    Palavra_Hash *tabela[TAM_TABELA];    /*Este vetor representa a tabela hash*/
+    Palavra_Hash *elementoProcurado;
+    Init_Hash(tabela);     /*Inicializando a tabela hash (todas as posições receberão NULL)*/
 
-    /*
-    printf("Paul -> %d\n", h("Paul"));
-    printf("John -> %d\n", h("John"));
-    printf("George -> %d\n", h("George"));
-    printf("Ringo -> %d\n", h("Ringo"));
-    printf("Hugo -> %d\n", h("Hugo"));
-    */
-
-    /*
-    inserirNaHash(tabela, "Paul");
-    inserirNaHash(tabela, "John");
-    inserirNaHash(tabela, "George");
-    inserirNaHash(tabela, "Ringo");
-    printarTabelaHash(tabela);
-
-    inserirNaHash(tabela, "Hugo");
-    inserirNaHash(tabela, "Paul");
-    removerDaHash(tabela, "John");
-    removerDaHash(tabela, "George");
-    removerDaHash(tabela, "John");
-    inserirNaHash(tabela, "George");
-    inserirNaHash(tabela, "Nicolas");
-    printarTabelaHash(tabela);
-
-    Palavra_Hash *teste2 = recuperarElementoNaHash(tabela, "Paul");
-    Palavra_Hash *teste3 = recuperarElementoNaHash(tabela, "George");
-
-    printf("Elemento: %s  qnt ocorrencias: %d\n", teste2->palavra, teste2->qntOcorrencias);
-    printf("Elemento: %s  qnt ocorrencias: %d\n", teste3->palavra, teste3->qntOcorrencias);
-    */
-
-
-    while(scanf("%s", palavra) != EOF){
+    while(scanf("%s", palavra) != EOF){     /*Realizando a leitura do input de texto palavra por palavra*/
         int tamPalavra = strlen(palavra), palavraValida=0;
-        if(tamPalavra == 1){
-            if(isCaractereValido(palavra[0])){
-                palavraValida = 1;
+        /*Fazendo algumas verificações antes de adicionar a palavra lida na tabela hash*/
+        if(tamPalavra > 0){
+            if(palavra[tamPalavra-1] == ','){
+                palavra[tamPalavra-1] = '\0';
+                tamPalavra--;
             }
         }
-        else{
-            if(palavra[tamPalavra-1] == ',')
-                palavra[tamPalavra-1] = '\0';
+        if(tamPalavra == 1){
+            if(isCaractereValido(palavra[0]))
+                palavraValida = 1;
+        }
+        else if(tamPalavra > 1)
             palavraValida = 1;
-        }
 
-        if(palavraValida){
+        if(palavraValida)
             inserirNaHash(tabela, palavra);
-        }
     }
 
-    printarTabelaHash(tabela);
+    /*printarTabelaHash(tabela);*/
 
-    Palavra_Hash *teste = recuperarElementoNaHash(tabela, "the");
-    if(teste == NULL)
-        printf("Nao foi achado o termo procurado!");
+    elementoProcurado = recuperarElementoNaHash(tabela, palavraProcurada);     /*Recuperando o elemento correspondente à palavra procurada na tabela hash*/
+    if(elementoProcurado == NULL)
+        printf("O termo procurado nao foi encontrado!");
     else
-        printf("\nQuantidade de 'the': %d", teste->qntOcorrencias);
-    printf("\n\nFIM\n");
+        printf(" %d %s ", elementoProcurado->qntOcorrencias, palavraProcurada);
+
     return 0;
 }
